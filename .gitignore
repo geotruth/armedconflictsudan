@@ -1,4 +1,8 @@
 /.quarto/
 .Rproj.user
 
+# filepaths
 filepaths.txt
+
+#R Ddta files
+*.RData
