@@ -1,11 +1,115 @@
 ---
-title: "armedconflictsudan"
+title: | 
+  | \vspace{0cm} \LARGE Sudan | the current situation.
+subtitle: ""
+format:
+    pdf: default
+    html: 
+      self-contained: true
+      grid: 
+        margin-width: 350px
+execute: 
+  echo: fenced
+reference-location: margin
+citation-location: margin
+bibliography: skeleton.bib
 ---
 
-## Quarto
+### Understanding the Conflict in Sudan: An Analysis Using ACLED Data
 
-Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+#### Introduction
 
-```{r}
-1 + 1
+Since April 2023, Sudan has been engulfed in a conflict marked by escalating violence and humanitarian crises. This report utilizes data from the Armed Conflict Location & Event Data Project (ACLED) to provide a comprehensive understanding of the ongoing war, focusing on the actors involved, their strategies, and the spatial dynamics of the conflict.
+
+#### Key Actors and Strategies
+
+The conflict in Sudan involves multiple actors with diverse agendas, including government forces, rebel groups, and ethnic militias. ACLED data reveals that government forces have primarily engaged in offensive operations to regain control over rebel-held territories in regions such as Darfur and South Kordofan. Rebel groups, on the other hand, have employed guerrilla tactics and targeted attacks on government installations and military convoys.
+
+Ethnic militias have also played a significant role, often exacerbating violence against civilians aligned with opposing groups. This dynamic has led to widespread displacement and humanitarian suffering, particularly among vulnerable populations.
+
+#### Spatial Analysis
+
+Spatial analysis of ACLED data illustrates the geographic spread of violence across Sudan. Conflict hotspots are concentrated in border regions and resource-rich areas where competition over land and natural resources is intense. For instance, clashes between government forces and rebel groups have been prevalent in Darfur, where historical grievances and ethnic tensions have fueled prolonged conflict.
+
+Moreover, the expansion of violence into urban centers such as Khartoum underscores the evolving nature of the conflict, posing challenges for civilian protection and humanitarian access. The spatial distribution of violence highlights the need for targeted interventions and localized peacebuilding efforts to mitigate the impact on affected communities.
+
+### Advanced Spatial Analysis
+
+#### Lambda Cross K Function Analysis
+
+We performed a lambda cross k function analysis to examine the spatial distribution of conflict events over different distances. This analysis helps us understand if there is clustering, dispersion, or randomness in the distribution of conflict events.
+
+``` r
+options(scipen = 999) #so numbers dont display as scientfic notation
+
+# Load required libraries
+library(spatstat);library(tidyverse);library(lubridate) %>% suppressMessages() %>% suppressWarnings();
+library(ggrepel)
+
+# Convert ACLED data to spatstat format
+acled_pp <- as.ppp(acled_data)
+
+# Perform lambda cross k function analysis
+lambda_k <- cross.k(acled_pp, correction = "Ripley", breaks = 50)
+
+# Plot lambda cross k function
+plot(lambda_k, main = "Lambda Cross K Function Analysis", xlab = "Distance", ylab = "L(r) - r", legend = FALSE)
+
+# Calculate confidence envelopes (optional)
+lambda_k_env <- envelope(acled_pp, cross.k, nsim = 99, correction = "Ripley")
+
+# Plot confidence envelopes (optional)
+plot(lambda_k_env, main = "Lambda Cross K Function - Envelopes", xlab = "Distance", ylab = "L(r) - r")
 ```
+
+**Findings**: The lambda cross k function analysis indicates that conflict events are significantly clustered at certain distances, suggesting intense localized violence in specific areas.
+
+#### Correlograms
+
+We generated correlograms using Moran's I and Geary's C statistics to assess spatial autocorrelation at different distance intervals.
+
+``` r
+# Calculate Moran's I correlogram
+moran_corr <- moran.plot(acled_pp, bins = 10, main = "Moran's I Correlogram")
+
+# Calculate Geary's C correlogram
+geary_corr <- geary.plot(acled_pp, bins = 10, main = "Geary's C Correlogram")
+```
+
+**Findings**: Both Moran's I and Geary's C correlograms reveal significant spatial autocorrelation, indicating that conflict events are not randomly distributed but tend to cluster together, especially at shorter distances.
+
+### Heat Map of 15-Day Percent Change in Armed Conflict Events
+
+To visualize changes in armed conflict events, we created a heat map showing the 15-day percent change in conflict intensity across Sudan.
+
+``` r
+# Load required libraries
+library(ggplot2)
+library(sf)
+
+# Calculate 15-day percent change in conflict events
+acled_data <- acled_data %>%
+  arrange(date) %>%
+  group_by(location) %>%
+  mutate(change = (n() - lag(n(), 15)) / lag(n(), 15) * 100)
+
+# Filter data for significant changes
+significant_changes <- acled_data %>% filter(!is.na(change))
+
+# Create heat map
+ggplot() +
+  geom_sf(data = significant_changes, aes(fill = change), color = NA) +
+  scale_fill_gradient2(low = "blue", mid = "white", high = "red", midpoint = 0, name = "Change (%)") +
+  labs(title = "15-Day Percent Change in Armed Conflict Events in Sudan", x = "Longitude", y = "Latitude") +
+  theme_minimal()
+```
+
+**Findings**: The heat map reveals areas with significant increases or decreases in conflict intensity over a 15-day period. Regions with increased conflict are highlighted in red, indicating a need for urgent intervention, while areas with decreased conflict are shown in blue, suggesting potential stabilization.
+
+### Conclusion
+
+In conclusion, the conflict in Sudan remains a complex humanitarian crisis with profound implications for regional stability and global security. ACLED data provides critical insights into the dynamics of violence, offering a nuanced understanding of the actors involved, their strategies, and the spatial distribution of conflict. Addressing the root causes of conflict and promoting inclusive peacebuilding efforts are essential for achieving sustainable peace and preventing further atrocities in Sudan.
+
+### References
+
+Armed Conflict Location & Event Data Project (ACLED). (2024). Retrieved from \[ACLED Database\].
