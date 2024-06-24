@@ -2,7 +2,8 @@
 .Rproj.user
 
 # filepaths
-filepaths.txt
+filepaths.csv
+filepaths.xlsx
 # History files
 .Rhistory
 .Rapp.history
