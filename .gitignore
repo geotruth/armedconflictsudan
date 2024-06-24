@@ -4,6 +4,8 @@
 # filepaths
 filepaths.csv
 filepaths.xlsx
+~$filepaths.xlsx
+
 # History files
 .Rhistory
 .Rapp.history
