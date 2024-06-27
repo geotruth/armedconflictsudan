@@ -7,7 +7,7 @@ format:
     html: 
       self-contained: true
       grid: 
-        margin-width: 350px
+        margin-width: 550px
 execute: 
   echo: fenced
 reference-location: margin
@@ -39,42 +39,257 @@ Moreover, the expansion of violence into urban centers such as Khartoum undersco
 
 We performed a lambda cross k function analysis to examine the spatial distribution of conflict events over different distances. This analysis helps us understand if there is clustering, dispersion, or randomness in the distribution of conflict events.
 
-``` r
+## Objective
+
+The objective of this analysis is to investigate the spatial interaction between two types of actors involved in the conflict: "Military Forces of Sudan" and "Rapid Support Forces." We use the Lambda Cross K Function to determine whether these actors exhibit spatial clustering or dispersion at various distances.
+
+## Data Preparation
+
+We begin by extracting the coordinates of events and creating a spatial window for the study area. A point pattern object (ppp) is then created with the coordinates and the actor types as marks.
+
+```{r data, include=FALSE}
 options(scipen = 999) #so numbers dont display as scientfic notation
 
 # Load required libraries
-library(spatstat);library(tidyverse);library(lubridate) %>% suppressMessages() %>% suppressWarnings();
-library(ggrepel)
+library(tidyverse);library(lubridate) %>% suppressMessages() %>% suppressWarnings();library(ggrepel); library(httr) %>% suppressMessages() %>% suppressWarnings();
+library(sf); library(rworldmap); library(readxl)
 
-# Convert ACLED data to spatstat format
-acled_pp <- as.ppp(acled_data)
 
-# Perform lambda cross k function analysis
-lambda_k <- cross.k(acled_pp, correction = "Ripley", breaks = 50)
 
-# Plot lambda cross k function
-plot(lambda_k, main = "Lambda Cross K Function Analysis", xlab = "Distance", ylab = "L(r) - r", legend = FALSE)
+readxl::read_xlsx('filepaths.xlsx') %>% 
+  dplyr::filter(name %in% 'working') %>% pull(2) ->working
 
-# Calculate confidence envelopes (optional)
-lambda_k_env <- envelope(acled_pp, cross.k, nsim = 99, correction = "Ripley")
+readxl::read_xlsx(glue::glue('{working}/keys/tokens.xlsx') ) %>% 
+  filter(Program %in% 'acled') %>%
+  pull(key)->acledtoken
 
-# Plot confidence envelopes (optional)
-plot(lambda_k_env, main = "Lambda Cross K Function - Envelopes", xlab = "Distance", ylab = "L(r) - r")
+readxl::read_xlsx(glue::glue('{working}/keys/tokens.xlsx') ) %>% 
+  filter(Program %in% 'email') %>%
+  pull(key)->acledemail
+
+
+
+rworldmap::getMap() %>% 
+  sf::st_as_sf() %>% 
+  dplyr::filter(continent %in% "Africa")->africabound
+
+sf::st_crs(africabound)->crs
+
+rworldmap::getMap() %>% 
+  sf::st_as_sf() %>% 
+  dplyr::filter(NAME %in% "Sudan") %>% 
+  sf::st_transform(crs)->sudanbound
+
+
+country = 'Sudan'
+startdate = format(lubridate::as_date(x = "1500-01-01"), "%Y-%m-%d")
+enddate = format(lubridate::today() , "%Y-%m-%d")
+
+
+
+# glue::glue(
+#   'https://api.acleddata.com/acled/read.csv?key={acledtoken}&email={acledemail}&country={country}&event_date={startdate}|{enddate}&event_date_where=BETWEEN&limit=1000000
+# '
+# ) %>%
+#   #head %>%
+#   httr::GET(.) %>%
+#   content(., as =  "parsed")  %>%
+#   mutate(
+#     event_type = as.factor(event_type),
+#     event_date = as.Date(event_date),
+#     location = as.factor(location)
+#   ) -> acled_data
+# acled_data %>% saveRDS('acled_data.RDS')
+read_rds("acled_data.RDS")->acled_data
+acled_data %>%
+  filter(event_date >= "2023-04-01") %>%
+  mutate(
+    actor = case_when(
+      actor1 %in% c("Military Forces of Sudan (2019-) Military Intelligence Service" ,"Military Forces of Sudan (2019-)")~ "Military Forces of Sudan",TRUE ~ actor1)
+    )  %>%
+  filter(actor %in%
+c("Military Forces of Sudan", "Rapid Support Forces")) %>% 
+  mutate(    actor = as.factor(actor))-> acled
 ```
 
-**Findings**: The lambda cross k function analysis indicates that conflict events are significantly clustered at certain distances, suggesting intense localized violence in specific areas.
+```{r lambdakcross, include=FALSE}
+
+#Ensure there is a column for marks (e.g., actors involved in the conflict)
+# acled$actor <- as.factor(acled$actor1 )
+require(spatstat)
+require(spatstat.geom)
+# Extract coordinates and create a window
+coords <- acled %>% select(longitude, latitude)
+window <- spatstat.geom::owin(range(coords$longitude), range(coords$latitude))
+
+# Create a ppp object with marks
+# acled_pp <- spatstat.geom::ppp(x = coords$longitude, y = coords$latitude, window = window, marks = acled$actor)
+
+# Check the summary of the ppp object to ensure it has marks
+# summary(acled_pp)
+
+## Check the levels of marks (actors)
+# levels(acled_pp$marks)
+
+# Perform lambda cross k function analysis between two types of actors
+# lambda_k <- spatstat.explore::Kcross(acled_pp, i = "Military Forces of Sudan", 
+                   # j = "Rapid Support Forces")
+
+
+
+# Plot lambda cross k function
+# plot(lambda_k, main = "Lambda Cross K Function Analysis", xlab = "Distance", ylab = "L(r) - r")
+
+# Calculate confidence envelopes (optional)
+# lambda_k_env <- spatstat.explore::envelope(acled_pp, Kcross, nsim = 99)
+
+# Plot confidence envelopes (optional)
+# plot(lambda_k_env, main = "Lambda Cross K Function - Envelopes", xlab = "Distance", ylab = "L(r) - r")
+
+# Save the plot
+# ggsave(here::here(getwd(), "plots", "lambdacrossK.png"),
+       # width = 50, height = 30, limitsize = FALSE)
+
+```
+
+![](plots/lambdacrossK.png)
+
+## Interpretation of Results
+
+The plot produced by the updated code provides insights into the spatial relationship between two types of actors: "Military Forces of Sudan" and "Rapid Support Forces."
+
+## Key Components of the Plot
+
+L(r) - r: This is the transformed K function, where L(r) is the univariate L function, and r is the distance. This transformation helps in visualizing the deviations from the Poisson process more clearly.
+
+Distance (x-axis): The horizontal axis represents the distance (r) between points in the spatial pattern.
+
+L(r) - r (y-axis): The vertical axis represents the transformed K function values.
+
+Lines:
+
+-   The solid black line represents the observed L function values for the interaction between "Military Forces of Sudan" and "Rapid Support Forces."
+
+-   The dashed lines represent the L function values under different edge corrections (if any were used). The blue dash-dotted line represents the theoretical L function under complete spatial randomness (CSR). Interpretation Spatial Interaction:
+
+-   If the observed L function (solid black line) is above the theoretical L function (blue dash-dotted line), it suggests that the two types of actors are exhibiting spatial clustering at those distances. This means events involving these actors are more likely to occur close to each other than would be expected under CSR. If the observed L function is below the theoretical L function, it indicates spatial dispersion, suggesting that events involving these actors are more spread out than would be expected under CSR. Distance Scale:
+
+At short distances (close to 0 on the x-axis), the observed L function is above the theoretical L function, indicating strong clustering between the "Military Forces of Sudan" and "Rapid Support Forces" at small distances. As the distance increases, the observed L function continues to stay above the theoretical line, indicating that clustering persists over a range of distances. Confidence Envelopes (Optional) The confidence envelopes provide a measure of the variability in the observed pattern compared to the expected pattern under CSR. They are calculated by simulating point patterns under the null hypothesis of CSR and provide upper and lower bounds (envelopes) for the L function.
+
+##### Interpretation
+
+1.  **Spatial Interaction**:
+
+    -   The observed L function (solid black line) is above the theoretical L function (blue dash-dotted line) across all distances, indicating spatial clustering between the "Military Forces of Sudan" and "Rapid Support Forces." This means events involving these actors are more likely to occur close to each other than would be expected under CSR.
+
+2.  **Distance Scale**:
+
+    -   At short distances (close to 0 on the x-axis), the observed L function shows strong clustering between the two actor types.
+
+    -   As the distance increases, the clustering persists, suggesting that events involving these actors are consistently clustered over a range of distances.
+
+Plotting Confidence Envelopes:
+
+-   The solid black line represents the observed L function.
+
+-   The shaded area represents the range of L function values obtained from the simulations.
+
+-   If the observed L function falls outside the shaded area, it indicates significant deviation from CSR, suggesting strong evidence of clustering or dispersion.
+
+## Conclusion
+
+The plot shows that there is a significant clustering between events involving the "Military Forces of Sudan" and the "Rapid Support Forces." This clustering persists across a range of distances, indicating that these two types of actors tend to have events that occur closer to each other than would be expected by chance. This finding can be crucial for understanding the spatial dynamics of the conflict and the interactions between these two groups.
+
+This interpretation can be included in your report to provide insights into the spatial relationship between the two types of actors in your study area.
+
+**Findings:** The lambda cross k function analysis indicates that conflict events are significantly clustered at certain distances, suggesting intense localized violence in specific areas.
 
 #### Correlograms
 
 We generated correlograms using Moran's I and Geary's C statistics to assess spatial autocorrelation at different distance intervals.
 
-``` r
-# Calculate Moran's I correlogram
-moran_corr <- moran.plot(acled_pp, bins = 10, main = "Moran's I Correlogram")
+```{r moransigearysc, include=FALSE}
+library(spdep)
+library(ggplot2)
+#Aggregate events by location to avoid duplicates
+acled_aggregated <- acled %>%
+  group_by(longitude, latitude) %>%
+  summarise(n = n(), .groups = "drop")
+
+coords <- cbind(acled_aggregated$longitude, acled_aggregated$latitude)
+
+# Create spatial weights matrix
+nb <- knn2nb(knearneigh(coords, k = 4))  # Nearest neighbors with k = 4
+lw <- nb2listw(nb)
+
+# Run Moran's I test
+moran_test <- spdep::moran.test(acled_aggregated$n, lw)
+print(moran_test)
+
+
+# Create distance-based spatial weights matrix
+dlist <- spdep::dnearneigh(coords, 0, max(unclass(dist(coords))), longlat=TRUE)
+
+# Increase maxlag to at least 2
+moran_corr <- spdep::sp.correlogram(dlist, acled_aggregated$n, method = "I", style = "W", order = 2, zero.policy = TRUE)
+
+# Example assuming the structure of moran_corr$res
+corr_data <- as.data.frame(moran_corr$res)
+names(corr_data) <- c("Distance", "Moran_I", "Expectation")
+
+# Optionally add more columns if they are available in moran_corr$res
+if (ncol(moran_corr$res) > 3) {
+  names(corr_data)[4:ncol(moran_corr$res)] <- colnames(moran_corr$res)[4:ncol(moran_corr$res)]
+}
+
+# Plot the correlogram
+ggplot(corr_data, aes(x = Distance, y = Moran_I)) +
+  geom_line() +
+  geom_point() +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  labs(title = "Moran's I Correlogram",
+       x = "Distance",
+       y = "Moran's I") +
+  theme_minimal()
+
+# Save the plot
+ggsave(here::here(getwd(), "plots", "moransi.png"),
+       width = 50, height = 30, limitsize = FALSE)
+
+
+
 
 # Calculate Geary's C correlogram
-geary_corr <- geary.plot(acled_pp, bins = 10, main = "Geary's C Correlogram")
+geary_corr <- spdep::sp.correlogram(nb, acled_aggregated$n, method = "C", style = "W", order = 2, zero.policy = TRUE)
+
+# Extract the results for plotting Geary's C correlogram
+geary_corr_data <- as.data.frame(geary_corr$res)
+names(geary_corr_data) <- c("Distance", "Geary_C", "P_value")  # Adjust names based on what's returned
+
+# Plot Geary's C correlogram
+ggplot(geary_corr_data, aes(x = Distance, y = Geary_C)) +
+  geom_line() +
+  geom_point() +
+  geom_hline(yintercept = 1, linetype = "dashed") +  # Geary's C expected value under spatial randomness is 1
+  labs(title = "Geary's C Correlogram",
+       x = "Distance",
+       y = "Geary's C") +
+  theme_minimal()
+
+
+# Save the plot
+ggsave(here::here(getwd(), "plots", "gearysc.png"),
+       width = 50, height = 30, limitsize = FALSE)
+
+
+
+
+
 ```
+
+![](plots/moransi.png)
+
+![](plots/gearysc.png)
 
 **Findings**: Both Moran's I and Geary's C correlograms reveal significant spatial autocorrelation, indicating that conflict events are not randomly distributed but tend to cluster together, especially at shorter distances.
 
@@ -82,27 +297,119 @@ geary_corr <- geary.plot(acled_pp, bins = 10, main = "Geary's C Correlogram")
 
 To visualize changes in armed conflict events, we created a heat map showing the 15-day percent change in conflict intensity across Sudan.
 
-``` r
+```{r heatmap , include=FALSE}
 # Load required libraries
 library(ggplot2)
 library(sf)
+library(ggtext)
+library(dplyr)
+library(tidyr)
+library(tibbletime)
+library(lubridate)
+library(extrafont)
 
-# Calculate 15-day percent change in conflict events
-acled_data <- acled_data %>%
-  arrange(date) %>%
-  group_by(location) %>%
-  mutate(change = (n() - lag(n(), 15)) / lag(n(), 15) * 100)
+# Import and load fonts
+# font_import()
+loadfonts(device = "pdf")  # Adjust for your output device
 
-# Filter data for significant changes
-significant_changes <- acled_data %>% filter(!is.na(change))
+# Define the rolling sum function for a 7-day window
+rolling_sum <- tibbletime::rollify(.f = sum, window = 7)
 
-# Create heat map
-ggplot() +
-  geom_sf(data = significant_changes, aes(fill = change), color = NA) +
-  scale_fill_gradient2(low = "blue", mid = "white", high = "red", midpoint = 0, name = "Change (%)") +
-  labs(title = "15-Day Percent Change in Armed Conflict Events in Sudan", x = "Longitude", y = "Latitude") +
-  theme_minimal()
+# Calculate the 15-day percent change in conflict events
+politicalevents <- acled %>%
+  filter(disorder_type %in% "Political violence") %>%
+  arrange(event_date) %>%
+  group_by(event_date, admin1) %>%
+  summarise(N = n(), .groups = 'drop') %>%
+  complete(event_date = seq(min(event_date), max(event_date), by = "day"), admin1) %>%
+  mutate(N = as.numeric(N), 
+         N = case_when(is.na(N) ~ 0, TRUE ~ N),
+         roll_sum = rolling_sum(N)) %>%
+  fill(roll_sum, .direction = "up") %>% 
+  mutate(roll_sum_lagged = lag(roll_sum, 7),
+         percent_change = (roll_sum - roll_sum_lagged) / roll_sum_lagged * 100) %>%
+  filter(!is.na(percent_change)) %>%
+  mutate(percent_change= case_when(percent_change %in% "Inf" ~1900, TRUE~percent_change)) %>% 
+  mutate(percentbincat = cut(percent_change, 
+                             breaks = c(-Inf, -100, -10, 0, 9, 99, 999, Inf),
+                             labels = c("-100%", 
+                                        "-99% to -10%", 
+                                        "-9% to 0%", 
+                                        "1% to 9%", 
+                                        "10% to 99%", 
+                                        "100% to 999%", 
+                                        "1000% or more"),
+                             include.lowest = TRUE,
+                             ordered_result = TRUE))
+
+# Calculate the end and start date for the range
+politicalevents %>% 
+  group_by(admin1) %>% 
+  filter(event_date == max(event_date, na.rm = TRUE)) %>% 
+  pull(event_date) %>% 
+  unique -> end.date
+
+end.date - lubridate::days(7) -> start.date
+c(end.date - lubridate::days(90), end.date + lubridate::days(1)) -> recentrange
+
+# Create a heatmap
+politicalevents %>% 
+  filter(event_date > lubridate::today() - 100) %>% 
+  ggplot(aes(x = event_date, y = admin1, fill = as.factor(percentbincat))) +
+  geom_tile(aes(width = 0.8, height = 0.95), colour = "transparent") +
+  geom_tile(data = politicalevents %>% group_by(admin1) %>% filter(event_date == max(event_date, na.rm = TRUE)), aes(x = event_date, y= admin1, fill = as.factor(percentbincat), width=.95, height=1.1), size=2, colour = "transparent") +
+  scale_fill_manual(values = c("#4575b4", "#91bfdb", "#e0f3f8", "#ffffbf", "#fee090", "#fc8d59", "#d73027"), 
+                    labels = c("-100%", 
+                               "-99% to -10%", 
+                               "-9% to 0%", 
+                               "1% to 9%", 
+                               "10% to 99%", 
+                               "100% to 999%", 
+                               "1000% or more"), 
+                    drop = FALSE) +
+  geom_vline(xintercept = end.date, show.legend = FALSE, lty = 2, lwd = 0.5, alpha = 0.6, color = "black") +
+  theme_bw() +
+  labs(title = "7-Day Percent Change in Armed Conflict Events in Sudan",
+       subtitle = "Based on ACLED Data",
+       x = "Date",
+       y = "Location",
+       fill = "Percent Change Category",
+       caption = glue::glue("Generated on {Sys.time()}")) +
+  scale_x_date(date_breaks = "weeks", limits = recentrange, date_labels = "%b %d, %Y", expand = c(0.01, 0.1)) +
+  scale_y_discrete(position = "right") +
+  theme_minimal() +
+  theme(
+    axis.title.y = ggtext::element_markdown(), 
+    strip.text = element_text(size = 17),
+    strip.text.x = element_text(margin = margin(0.2, 0, 0.2, 0, "cm")),
+    plot.title.position = "plot", 
+    plot.title = element_text(color = "#00A9A3", size = 30, face = "bold.italic"),
+    plot.subtitle = element_text(color = "darkgrey", size = 25),
+    text = element_text(size = 20, family = "Roboto Condensed"),  # Adjusted for registered font
+    legend.text = element_text(size = 18),
+    axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1),
+    legend.position = "bottom",
+    legend.title = element_blank(),
+    legend.key.height = unit(1.1, "line")
+  ) +
+  geom_text(aes(
+    x = end.date ,
+    y = politicalevents %>% dplyr::select(admin1) %>% unique() %>% nrow() + 1,
+    label = glue::glue("{end.date %>%  format('%b %d, %Y')}")
+  ), vjust = 0, color = "green", check_overlap = F, nudge_x = 0, angle = 0, size = 4, alpha = 0.8) +
+  guides(fill = guide_legend(title = "15-Day % Change \nCategory", nrow = 1))
+
+# Save the plot
+ggsave(here::here(getwd(), "plots", "heatmap.png"),
+       width = 50, height = 30, limitsize = FALSE)
+
+
+
+
+
 ```
+
+![](plots/heatmap.png)
 
 **Findings**: The heat map reveals areas with significant increases or decreases in conflict intensity over a 15-day period. Regions with increased conflict are highlighted in red, indicating a need for urgent intervention, while areas with decreased conflict are shown in blue, suggesting potential stabilization.
 

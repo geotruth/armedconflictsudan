@@ -12,6 +12,7 @@ filepaths.xlsx
 
 # Session Data files
 .RData
+.RDS
 
 # User-specific files
 .Ruserdata
