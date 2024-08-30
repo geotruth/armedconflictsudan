@@ -11,8 +11,8 @@ filepaths.xlsx
 .Rapp.history
 
 # Session Data files
-.RData
-.RDS
+*.RData
+*.RDS
 
 # User-specific files
 .Ruserdata

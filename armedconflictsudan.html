@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.4.551">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>quarto-input74a72a81</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+.display.math{display: block; text-align: center; margin: 0.5rem auto;}
+</style>
+
+
+<style>html{ scroll-behavior: smooth; }</style>
+
+
+</head>
+
+<body>
+
+
+<header id="title-block-header">
+<h1 class="title"><div class="line-block"> Sudan | Understanding the Conflict.</div></h1>
+
+</header>
+
+
+<h3 id="understanding-the-conflict-in-sudan-an-analysis-using-acled-data">Understanding the Conflict in Sudan: An Analysis Using ACLED Data</h3>
+<h4 id="introduction">Introduction</h4>
+<p>Since April 2023, Sudan has been engulfed in a conflict marked by escalating violence and humanitarian crises. This report utilizes data from the Armed Conflict Location &amp; Event Data Project (ACLED) to provide a comprehensive understanding of the ongoing war, focusing on the actors involved, their strategies, and the spatial dynamics of the conflict.</p>
+<h4 id="key-actors-and-strategies">Key Actors and Strategies</h4>
+<p>The conflict in Sudan involves multiple actors with diverse agendas, including government forces, rebel groups, and ethnic militias. ACLED data reveals that government forces have primarily engaged in offensive operations to regain control over rebel-held territories in regions such as Darfur and South Kordofan. Rebel groups, on the other hand, have employed guerrilla tactics and targeted attacks on government installations and military convoys.</p>
+<p>Ethnic militias have also played a significant role, often exacerbating violence against civilians aligned with opposing groups. This dynamic has led to widespread displacement and humanitarian suffering, particularly among vulnerable populations.</p>
+<h4 id="spatial-analysis">Spatial Analysis</h4>
+<p>Spatial analysis of ACLED data illustrates the geographic spread of violence across Sudan. Conflict hotspots are concentrated in border regions and resource-rich areas where competition over land and natural resources is intense. For instance, clashes between government forces and rebel groups have been prevalent in Darfur, where historical grievances and ethnic tensions have fueled prolonged conflict.</p>
+<p>Moreover, the expansion of violence into urban centers such as Khartoum underscores the evolving nature of the conflict, posing challenges for civilian protection and humanitarian access. The spatial distribution of violence highlights the need for targeted interventions and localized peacebuilding efforts to mitigate the impact on affected communities.</p>
+<h3 id="advanced-spatial-analysis">Advanced Spatial Analysis</h3>
+<h4 id="lambda-cross-k-function-analysis">Lambda Cross K Function Analysis</h4>
+<p>We performed a lambda cross k function analysis to examine the spatial distribution of conflict events over different distances. This analysis helps us understand if there is clustering, dispersion, or randomness in the distribution of conflict events.</p>
+<h2 id="objective">Objective</h2>
+<p>The objective of this analysis is to investigate the spatial interaction between two types of actors involved in the conflict: “Military Forces of Sudan” and “Rapid Support Forces.” We use the Lambda Cross K Function to determine whether these actors exhibit spatial clustering or dispersion at various distances.</p>
+<h2 id="data-preparation">Data Preparation</h2>
+<p>We begin by extracting the coordinates of events and creating a spatial window for the study area. A point pattern object (ppp) is then created with the coordinates and the actor types as marks.</p>
+<p><img src="plots/lambdacrossK.png" class="img-fluid"></p>
+<h2 id="interpretation-of-results">Interpretation of Results</h2>
+<p>The plot produced by the updated code provides insights into the spatial relationship between two types of actors: “Military Forces of Sudan” and “Rapid Support Forces.”</p>
+<h2 id="key-components-of-the-plot">Key Components of the Plot</h2>
+<p>L(r) - r: This is the transformed K function, where L(r) is the univariate L function, and r is the distance. This transformation helps in visualizing the deviations from the Poisson process more clearly.</p>
+<p>Distance (x-axis): The horizontal axis represents the distance (r) between points in the spatial pattern.</p>
+<p>L(r) - r (y-axis): The vertical axis represents the transformed K function values.</p>
+<p>Lines:</p>
+<ul>
+<li><p>The solid black line represents the observed L function values for the interaction between “Military Forces of Sudan” and “Rapid Support Forces.”</p></li>
+<li><p>The dashed lines represent the L function values under different edge corrections (if any were used). The blue dash-dotted line represents the theoretical L function under complete spatial randomness (CSR). Interpretation Spatial Interaction:</p></li>
+<li><p>If the observed L function (solid black line) is above the theoretical L function (blue dash-dotted line), it suggests that the two types of actors are exhibiting spatial clustering at those distances. This means events involving these actors are more likely to occur close to each other than would be expected under CSR. If the observed L function is below the theoretical L function, it indicates spatial dispersion, suggesting that events involving these actors are more spread out than would be expected under CSR. Distance Scale:</p></li>
+</ul>
+<p>At short distances (close to 0 on the x-axis), the observed L function is above the theoretical L function, indicating strong clustering between the “Military Forces of Sudan” and “Rapid Support Forces” at small distances. As the distance increases, the observed L function continues to stay above the theoretical line, indicating that clustering persists over a range of distances. Confidence Envelopes (Optional) The confidence envelopes provide a measure of the variability in the observed pattern compared to the expected pattern under CSR. They are calculated by simulating point patterns under the null hypothesis of CSR and provide upper and lower bounds (envelopes) for the L function.</p>
+<h5 id="interpretation">Interpretation</h5>
+<ol type="1">
+<li><p><strong>Spatial Interaction</strong>:</p>
+<ul>
+<li>The observed L function (solid black line) is above the theoretical L function (blue dash-dotted line) across all distances, indicating spatial clustering between the “Military Forces of Sudan” and “Rapid Support Forces.” This means events involving these actors are more likely to occur close to each other than would be expected under CSR.</li>
+</ul></li>
+<li><p><strong>Distance Scale</strong>:</p>
+<ul>
+<li><p>At short distances (close to 0 on the x-axis), the observed L function shows strong clustering between the two actor types.</p></li>
+<li><p>As the distance increases, the clustering persists, suggesting that events involving these actors are consistently clustered over a range of distances.</p></li>
+</ul></li>
+</ol>
+<p>Plotting Confidence Envelopes:</p>
+<ul>
+<li><p>The solid black line represents the observed L function.</p></li>
+<li><p>The shaded area represents the range of L function values obtained from the simulations.</p></li>
+<li><p>If the observed L function falls outside the shaded area, it indicates significant deviation from CSR, suggesting strong evidence of clustering or dispersion.</p></li>
+</ul>
+<h2 id="conclusion">Conclusion</h2>
+<p>The plot shows that there is a significant clustering between events involving the “Military Forces of Sudan” and the “Rapid Support Forces.” This clustering persists across a range of distances, indicating that these two types of actors tend to have events that occur closer to each other than would be expected by chance. This finding can be crucial for understanding the spatial dynamics of the conflict and the interactions between these two groups.</p>
+<p>This interpretation can be included in your report to provide insights into the spatial relationship between the two types of actors in your study area.</p>
+<p><strong>Findings:</strong> The lambda cross k function analysis indicates that conflict events are significantly clustered at certain distances, suggesting intense localized violence in specific areas.</p>
+<h4 id="correlograms">Correlograms</h4>
+<p>We generated correlograms using Moran’s I and Geary’s C statistics to assess spatial autocorrelation at different distance intervals.</p>
+<p><br>
+</p>
+<div class="quarto-figure quarto-figure-center">
+<figure>
+<p><img src="plots/moransi.png" class="img-fluid"></p>
+<figcaption>Moran’s I</figcaption>
+</figure>
+</div>
+<p><br>
+</p>
+<div class="quarto-figure quarto-figure-center">
+<figure>
+<p><img src="plots/gearysc.png" class="img-fluid"></p>
+<figcaption>Geary’s C</figcaption>
+</figure>
+</div>
+<p><strong>Findings</strong>: Both Moran’s I and Geary’s C correlograms reveal significant spatial autocorrelation, indicating that conflict events are not randomly distributed but tend to cluster together, especially at shorter distances.</p>
+<h3 id="heat-map-of-15-day-percent-change-in-armed-conflict-events">Heat Map of 15-Day Percent Change in Armed Conflict Events</h3>
+<p>To visualize changes in armed conflict events, we created a heat map showing the 15-day percent change in conflict intensity across Sudan.</p>
+<p><img src="plots/heatmap.png" class="img-fluid"></p>
+<p><strong>Findings</strong>: The heat map reveals areas with significant increases or decreases in conflict intensity over a 15-day period. Regions with increased conflict are highlighted in red, indicating a need for urgent intervention, while areas with decreased conflict are shown in blue, suggesting potential stabilization.</p>
+<h3 id="conclusion-1">Conclusion</h3>
+<p>In conclusion, the conflict in Sudan remains a humanitarian crisis with profound implications for regional stability and global security. ACLED data provides critical insights into the dynamics of violence, offering a nuanced understanding of the actors involved, their strategies, and the spatial distribution of conflict. Addressing the root causes of conflict and promoting inclusive peacebuilding efforts are essential for achieving sustainable peace and preventing further atrocities in Sudan.</p>
+<h3 id="references">References</h3>
+<p>Armed Conflict Location &amp; Event Data Project (ACLED). (2024). Retrieved from [ACLED Database].</p>
+
+
+
+
+
+<script src="armedconflictsudan_files/libs/quarto-html/zenscroll-min.js"></script>
+</body></html>
