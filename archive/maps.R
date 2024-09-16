@@ -130,7 +130,7 @@ ggplot() +
                                                                      contains(c("count", "percent"))), 
                         all.x=T) %>% filter(totalcounts > 0),
           mapping = aes(fill = "Regions with at least 1 armed conflict event within the date range."),
-          size = 0.1
+          linewidth = 0.1
   ) +
   geom_segment(
     data = sudanregion_label %>% filter(admin1Name %in% c("Bahrain", "United Arab Emirates", "Qatar")),
@@ -275,34 +275,38 @@ plotmaps <- function(x) {
       legend.position = "none",
       panel.background = element_rect(fill = NA, color = NA)) 
   
-    ggsave(
-      # filename = paste(getwd(), "/plots/", x[['admin1Name']], "timeseries.pdf"),
-      filename = glue::glue("{getwd()}/plots/{x[['admin1Name']]}timeseries.pdf"),
-      width = 36,  # Increase width
-      height = 46,  # Increase height
-      device = cairo_pdf)
+    # ggsave(
+    #   # filename = paste(getwd(), "/plots/", x[['admin1Name']], "timeseries.pdf"),
+    #   filename = glue::glue("{getwd()}/plots/{x[['admin1Name']]}timeseries.pdf"),
+    #   width = 36,  # Increase width
+    #   height = 46,  # Increase height
+    #   device = cairo_pdf)
   
-  # sf::st_combine(.)
-  
+
 }
-# ggsave(here::here(getwd(), "plots", glue::glue("{.x[['admin1Name']]} timeseries.pdf")),
-#                       width = 36,  # Increase width
-#                       height = 46,  # Increase height
-#                       device = cairo_pdf)
+
+
+
+
+
+
 
 
 sp::merge(
-  x = sudan_boundaries,
-  y = events %>% st_drop_geometry(),
+  x = sudan_boundaries %>% select(events %>% select_if(!names(.) %in% (names(events))) %>% names, "admin1Name"),
+  y = events %>% st_drop_geometry()  ,
   by = "admin1Name", all.x = TRUE) %>% 
   group_by(admin1Name, .drop=F) %>% 
+
   mutate(fatalitiestotal = sum(fatalities),
          eventstotal= sum(n()),
          namegroup = admin1Name) %>% 
+
   ungroup %>% 
+  filter(!admin1Name=="Abyei PCA Area") %>% 
   select(admin1Name,namegroup, fatalitiestotal, eventstotal ) %>% 
   unique %>% 
-  # head(5) %>% 
+  # head(2) 
   group_by(namegroup, .drop=F) %>%
   named_group_split(namegroup) %>% 
   purrr::map(.x= .,
@@ -312,10 +316,16 @@ sp::merge(
 
 
 
-  
-
-
-
+  map2(sudanplots %>% head(2), timeseriesplots %>% head(2), 
+       \(x,y) (x|y) + plot_layout(widths = c(1, 4.5))
+    
+  )
+  # 
+  ggsave(here::here(getwd(), "plots", "combinedplots.pdf"),
+         width = 49,  # Increase width
+         height = 10,  # Increase height
+         device = cairo_pdf
+  )
 
 
   
